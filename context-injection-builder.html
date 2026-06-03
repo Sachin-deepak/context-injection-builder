@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Context Injection Builder</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href='data:image/svg+xml;utf8,
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <rect x="8" y="8" width="48" height="48" rx="14" fill="%23b43b50"/>
+        <path fill="%23ffffff" d="M24.8 21.5c-2.8 1.8-4.7 5-4.7 10.5s1.9 8.7 4.7 10.5l2.8-3.2c-1.7-1.3-2.9-3.4-2.9-7.3s1.2-6 2.9-7.3zm14.4 0-2.8 3.2c1.7 1.3 2.9 3.4 2.9 7.3s-1.2 6-2.9 7.3l2.8 3.2c2.8-1.8 4.7-5 4.7-10.5s-1.9-8.7-4.7-10.5zM29.7 35h4.6v-6h-4.6z"/>
+      </svg>'
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #ffffff;
+        --bg-soft: #fcfcfc;
+        --panel: #ffffff;
+        --panel-strong: #ffffff;
+        --panel-elevated: #ffffff;
+        --line: rgba(176, 59, 78, 0.16);
+        --line-strong: rgba(176, 59, 78, 0.28);
+        --text: #131313;
+        --muted: #6d6d6d;
+        --muted-2: #4f4f4f;
+        --accent: #b43b50;
+        --accent-strong: #a83447;
+        --violet: #f3d9de;
+        --green: #0f9b63;
+        --amber: #b7791f;
+        --rose: #b43b50;
+        --radius-xl: 22px;
+        --radius-lg: 18px;
+        --radius-md: 14px;
+        --radius-sm: 10px;
+        --shadow-xl: 0 12px 30px rgba(0, 0, 0, 0.03);
+        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.03);
+        --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.025);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background: #ffffff;
+      }
+
+      body::before {
+        display: none;
+      }
+
+      .app-shell {
+        width: min(1480px, calc(100% - 40px));
+        margin: 12px auto 36px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 18px;
+        padding: 8px 6px 10px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .topbar-brand,
+      .topbar-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .brand-mark {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: none;
+      }
+
+      .topbar-brand span:last-child {
+        color: #666666;
+        font-size: 0.92rem;
+        font-weight: 500;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 460px);
+        gap: 24px;
+        margin-top: 8px;
+      }
+
+      @media (max-width: 1220px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .left-stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .right-stack {
+        display: grid;
+        gap: 18px;
+        align-self: start;
+        position: sticky;
+        top: 18px;
+      }
+
+      @media (max-width: 1220px) {
+        .right-stack {
+          position: static;
+        }
+      }
+
+      .panel {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--radius-xl);
+        border: 1px solid var(--line);
+        background: var(--panel);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .panel::before {
+        display: none;
+      }
+
+      .panel-inner {
+        position: relative;
+        z-index: 1;
+        padding: 24px;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: flex-start;
+        margin-bottom: 18px;
+      }
+
+      .panel-title-wrap {
+        display: grid;
+        gap: 8px;
+      }
+
+      .step-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: rgba(180, 59, 80, 0.06);
+        border: 1px solid rgba(180, 59, 80, 0.14);
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 0.84rem;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.16rem;
+        letter-spacing: -0.01em;
+        font-weight: 700;
+      }
+
+      .section-copy {
+        margin: 0;
+        color: #666666;
+        line-height: 1.6;
+        font-size: 0.94rem;
+      }
+
+      .panel-kicker {
+        color: var(--accent);
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+
+      .control-cluster,
+      .button-row,
+      .toggle-row,
+      .inline-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .control-cluster {
+        margin-bottom: 14px;
+      }
+
+      button,
+      .file-button {
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        border-radius: 999px;
+        padding: 10px 14px;
+        min-height: 40px;
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.82rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      }
+
+      button:hover,
+      .file-button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:active,
+      .file-button:active {
+        transform: translateY(0);
+      }
+
+      .primary {
+        color: white;
+        background: var(--accent);
+        box-shadow: none;
+      }
+
+      .secondary {
+        color: var(--text);
+        background: #ffffff;
+        border: 1px solid rgba(180, 59, 80, 0.7);
+      }
+
+      .ghost {
+        color: #666666;
+        background: #ffffff;
+        border: 1px solid rgba(180, 59, 80, 0.18);
+      }
+
+      .success {
+        color: white;
+        background: var(--accent);
+        box-shadow: none;
+      }
+
+      .subtle {
+        color: var(--muted);
+        background: transparent;
+        border: 1px solid transparent;
+      }
+
+      textarea,
+      input,
+      select {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid rgba(17, 17, 17, 0.12);
+        background: #ffffff;
+        color: var(--text);
+        padding: 14px 16px;
+        font: inherit;
+        outline: none;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      }
+
+      textarea:focus,
+      input:focus,
+      select:focus {
+        border-color: rgba(180, 59, 80, 0.45);
+        box-shadow: 0 0 0 3px rgba(180, 59, 80, 0.08);
+        background: #ffffff;
+      }
+
+      textarea {
+        min-height: 260px;
+        resize: vertical;
+        line-height: 1.52;
+      }
+
+      .drop-surface {
+        border-radius: 18px;
+        border: 1px solid rgba(180, 59, 80, 0.12);
+        background: #ffffff;
+        padding: 14px;
+      }
+
+      .drop-surface.dragging {
+        border-color: rgba(180, 59, 80, 0.28);
+        box-shadow: 0 0 0 3px rgba(180, 59, 80, 0.06);
+      }
+
+      .hint-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+        color: #7a7a7a;
+        font-size: 0.82rem;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      @media (max-width: 760px) {
+        .field-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field label {
+        color: #444444;
+        font-size: 0.84rem;
+        font-weight: 600;
+      }
+
+      .microcopy {
+        color: #7a7a7a;
+        font-size: 0.8rem;
+        line-height: 1.5;
+      }
+
+      .status {
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(17, 17, 17, 0.08);
+        background: #ffffff;
+        color: var(--text);
+        white-space: pre-wrap;
+        line-height: 1.58;
+        font-size: 0.92rem;
+      }
+
+      .status.error {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.18);
+        color: #991b1b;
+      }
+
+      .status.success {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.18);
+        color: #065f46;
+      }
+
+      .status.warning {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: rgba(245, 158, 11, 0.26);
+        color: #92400e;
+      }
+
+      .switch-card {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: #ffffff;
+        border: 1px solid rgba(180, 59, 80, 0.12);
+      }
+
+      .switch-copy {
+        display: grid;
+        gap: 4px;
+      }
+
+      .switch-copy strong {
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+
+      .switch-copy span {
+        color: #777777;
+        font-size: 0.82rem;
+        line-height: 1.5;
+      }
+
+      .switch {
+        position: relative;
+        display: inline-flex;
+        width: 58px;
+        height: 34px;
+        flex: 0 0 auto;
+      }
+
+      .switch input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .switch-track {
+        width: 100%;
+        height: 100%;
+        border-radius: 999px;
+        background: rgba(17, 17, 17, 0.08);
+        border: 1px solid rgba(17, 17, 17, 0.08);
+        transition: background 0.18s ease, border-color 0.18s ease;
+      }
+
+      .switch-track::after {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        transition: transform 0.18s ease;
+      }
+
+      .switch input:checked + .switch-track {
+        background: var(--accent);
+        border-color: rgba(180, 59, 80, 0.22);
+      }
+
+      .switch input:checked + .switch-track::after {
+        transform: translateX(24px);
+      }
+
+      .panel-muted {
+        opacity: 0.56;
+      }
+
+      .attribute-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 12px;
+      }
+
+      @media (max-width: 860px) {
+        .attribute-toolbar {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .stats-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 16px 0;
+      }
+
+      .stat-chip {
+        min-width: 120px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #ffffff;
+        border: 1px solid rgba(180, 59, 80, 0.12);
+      }
+
+      .stat-chip strong {
+        display: block;
+        font-size: 1.05rem;
+        margin-bottom: 4px;
+      }
+
+      .stat-chip span {
+        color: #777777;
+        font-size: 0.8rem;
+      }
+
+      .attribute-list {
+        display: grid;
+        gap: 10px;
+        max-height: 520px;
+        overflow: auto;
+        padding-right: 2px;
+      }
+
+      .attribute-card {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(17, 17, 17, 0.08);
+        background: #ffffff;
+        transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      }
+
+      .attribute-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(180, 59, 80, 0.2);
+        background: #ffffff;
+      }
+
+      .attribute-card.is-selected {
+        border-color: rgba(180, 59, 80, 0.28);
+        background: rgba(180, 59, 80, 0.03);
+      }
+
+      .attribute-card input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #b43b50;
+      }
+
+      .attribute-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .attribute-meta {
+        margin-top: 4px;
+        color: #7a7a7a;
+        font-size: 0.8rem;
+      }
+
+      .attribute-id {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 88px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #ffffff;
+        border: 1px solid rgba(180, 59, 80, 0.12);
+        color: var(--accent);
+        font-size: 0.8rem;
+      }
+
+      .selection-tray {
+        display: grid;
+        gap: 14px;
+      }
+
+      .selection-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 38px;
+        height: 38px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: rgba(180, 59, 80, 0.06);
+        border: 1px solid rgba(180, 59, 80, 0.12);
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .chip-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 100%;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(180, 59, 80, 0.05);
+        border: 1px solid rgba(180, 59, 80, 0.12);
+        color: var(--accent);
+        font-size: 0.84rem;
+      }
+
+      .pill button {
+        padding: 0;
+        min-height: 0;
+        background: transparent;
+        color: inherit;
+        border-radius: 999px;
+        line-height: 1;
+      }
+
+      .empty-state {
+        padding: 28px 18px;
+        text-align: center;
+        border-radius: 18px;
+        color: #777777;
+        border: 1px dashed rgba(180, 59, 80, 0.14);
+        background: #ffffff;
+      }
+
+      .footer-note {
+        margin-top: 16px;
+        color: #777777;
+        font-size: 0.82rem;
+        line-height: 1.6;
+      }
+
+      .preview-dock {
+        overflow: hidden;
+      }
+
+      .preview-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: flex-start;
+        margin-bottom: 18px;
+      }
+
+      .preview-health {
+        display: grid;
+        gap: 12px;
+      }
+
+      .health-banner {
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(180, 59, 80, 0.12);
+        background: #ffffff;
+        color: #595959;
+        font-size: 0.84rem;
+        line-height: 1.55;
+      }
+
+      .preview-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .preview-stat {
+        min-width: 110px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: #ffffff;
+        border: 1px solid rgba(180, 59, 80, 0.12);
+      }
+
+      .preview-stat strong {
+        display: block;
+        font-size: 1rem;
+        margin-bottom: 4px;
+      }
+
+      .preview-stat span {
+        color: #777777;
+        font-size: 0.78rem;
+      }
+
+      .preview-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .preview {
+        margin: 0;
+        min-height: 520px;
+        max-height: 68vh;
+        overflow: auto;
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(180, 59, 80, 0.12);
+        background: #ffffff;
+        box-shadow: none;
+        font-family: "SFMono-Regular", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.86rem;
+        line-height: 1.58;
+      }
+
+      .preview-footer {
+        margin-top: 14px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        color: #777777;
+        font-size: 0.8rem;
+      }
+
+      .shortcuts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(180, 59, 80, 0.14);
+        background: #ffffff;
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .file-input {
+        display: none;
+      }
+
+      code {
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: rgba(180, 59, 80, 0.05);
+        border: 1px solid rgba(180, 59, 80, 0.1);
+        font-family: inherit;
+        font-size: 0.85em;
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: rgba(180, 59, 80, 0.22);
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="topbar">
+        <div class="topbar-brand">
+          <span class="brand-mark"></span>
+          <span>Context Injection Builder</span>
+        </div>
+      </div>
+
+      <div class="workspace">
+        <div class="left-stack">
+          <section class="panel" id="dumpPanel">
+            <div class="panel-inner">
+              <div class="panel-header">
+                <div class="panel-title-wrap">
+                  <span class="panel-kicker">Input</span>
+                  <div class="inline-row">
+                    <span class="step-tag">1</span>
+                    <h2>Paste or import attribute dumps</h2>
+                  </div>
+                  <p class="section-copy">
+                    Copy the <code>genericProxyRequest</code> payload from the Network tab in Engati’s
+                    Attributes section and paste it here. If your attributes are spread across multiple pages,
+                    paste the payload from every page one after another so the builder can capture the full list.
+                  </p>
+                </div>
+              </div>
+
+              <div class="drop-surface" id="dropSurface">
+                <div class="control-cluster">
+                  <button class="primary" id="parseButton" type="button">Parse dumps</button>
+                  <label class="file-button secondary" for="fileInput">Import file</label>
+                  <input class="file-input" id="fileInput" type="file" accept=".txt,.json,text/plain,application/json" />
+                  <button class="ghost" id="clearDumpButton" type="button">Clear</button>
+                </div>
+                <textarea
+                  id="dumpInput"
+                  spellcheck="false"
+                  placeholder='Example:
+{"code":1000,"status":"SUCCESS","data":[{"id":7666469,"name":"quote_id"},{"id":7666470,"name":"selection_summary"}]}
+
+{"code":1000,"status":"SUCCESS","data":[{"id":7879757,"name":"vehicle_data_status_code"}]}'
+                ></textarea>
+              </div>
+
+              <div class="hint-row">
+                <span>Tip: paste the payloads from all pages here in one go, one after another.</span>
+                <span>Shortcut: <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> to parse</span>
+              </div>
+
+              <div id="parseStatus" class="status">Paste your dump and click “Parse dumps”.</div>
+            </div>
+          </section>
+
+          <section class="panel" id="startupPanel">
+            <div class="panel-inner">
+              <div class="panel-header">
+                <div class="panel-title-wrap">
+                  <span class="panel-kicker">Startup</span>
+                  <div class="inline-row">
+                    <span class="step-tag">2</span>
+                    <h2>Control startup injection</h2>
+                  </div>
+                  <p class="section-copy">
+                    Keep startup on when you want selected attributes mapped into both
+                    <code>GET_ATTRIBUTE_VALUES</code> and <code>INJECT_IN_CONTEXT</code>. Turn it off to export
+                    <code>on_startup: []</code>.
+                  </p>
+                </div>
+              </div>
+
+              <div class="switch-card">
+                <div class="switch-copy">
+                  <strong>Include <code>on_startup</code></strong>
+                  <span>The standardized prompt and <code>STARTUP_ATTRIBUTES</code> label stay fixed.</span>
+                </div>
+                <label class="switch" aria-label="Toggle startup section">
+                  <input id="enableStartup" type="checkbox" checked />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+
+              <div class="footer-note">
+                Only the selected attribute keys and their context variable names are dynamic in this section.
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" id="attributePanel">
+            <div class="panel-inner">
+              <div class="panel-header">
+                <div class="panel-title-wrap">
+                  <span class="panel-kicker">Selection</span>
+                  <div class="inline-row">
+                    <span class="step-tag">3</span>
+                    <h2>Search and choose attributes</h2>
+                  </div>
+                  <p class="section-copy">
+                    Search by attribute name or key, then build your startup payload with precise selections.
+                    The exported order follows your selection order.
+                  </p>
+                </div>
+              </div>
+
+              <div class="attribute-toolbar">
+                <input id="attributeSearch" type="text" placeholder="Search by attribute name or key…" />
+                <button class="secondary" id="selectVisibleButton" type="button">Select all</button>
+                <button class="ghost" id="clearSelectionButton" type="button">Clear selection</button>
+              </div>
+
+              <div id="attributeSummary" class="stats-row"></div>
+              <div id="attributeList" class="attribute-list"></div>
+            </div>
+          </section>
+
+          <section class="panel" id="completionPanel">
+            <div class="panel-inner">
+              <div class="panel-header">
+                <div class="panel-title-wrap">
+                  <span class="panel-kicker">Completion</span>
+                  <div class="inline-row">
+                    <span class="step-tag">4</span>
+                    <h2>Configure completion API details</h2>
+                  </div>
+                  <p class="section-copy">
+                    Fill only the dynamic completion fields. The rest of the request format remains standardized.
+                  </p>
+                </div>
+              </div>
+
+              <div class="switch-card" style="margin-bottom: 16px;">
+                <div class="switch-copy">
+                  <strong>Include <code>on_completion</code></strong>
+                  <span>Turn this off to export <code>on_completion: []</code>.</span>
+                </div>
+                <label class="switch" aria-label="Toggle completion section">
+                  <input id="enableCompletion" type="checkbox" checked />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+
+              <div class="field-grid">
+                <div class="field">
+                  <label for="completionName">Path trigger name</label>
+                  <input id="completionName" type="text" placeholder="disposition_path" value="disposition_path" />
+                  <span class="microcopy">This becomes the <code>name</code> above the API config.</span>
+                </div>
+
+                <div class="field">
+                  <label for="channel">Channel</label>
+                  <select id="channel">
+                    <option value="telephony">telephony</option>
+                    <option value="whatsapp">whatsapp</option>
+                  </select>
+                  <span class="microcopy">Select the channel injected into <code>user.channel</code>.</span>
+                </div>
+
+                <div class="field">
+                  <label for="customerId">Customer ID</label>
+                  <input id="customerId" type="text" placeholder="120177" />
+                </div>
+
+                <div class="field">
+                  <label for="botKey">Bot key</label>
+                  <input id="botKey" type="text" placeholder="179cc6efc10f4f46" />
+                </div>
+
+                <div class="field">
+                  <label for="flowKey">Flow key</label>
+                  <input id="flowKey" type="text" placeholder="565AA032712B4E22B95E32462476DC96" />
+                </div>
+
+                <div class="field">
+                  <label for="authorizationKey">Authorization key</label>
+                  <input id="authorizationKey" type="text" placeholder="020986b0-... or Basic 020986b0-..." />
+                  <span class="microcopy">If you paste only the key, <code>Basic</code> is added automatically.</span>
+                </div>
+              </div>
+
+              <div id="validationStatus" class="status warning">Completion validation will appear here.</div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="right-stack" id="previewColumn">
+          <section class="panel">
+            <div class="panel-inner">
+              <div class="selection-tray">
+                <div class="selection-header">
+                  <div>
+                    <h2>Selected attributes</h2>
+                    <p class="section-copy" style="margin-top: 6px;">
+                      These are the attributes that will flow into your startup context injection.
+                    </p>
+                  </div>
+                  <span id="selectionCountBadge" class="count-badge">0</span>
+                </div>
+                <div id="selectedAttributes" class="chip-wrap"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel preview-dock" id="previewPanel">
+            <div class="panel-inner">
+              <div class="preview-head">
+                <div class="preview-health">
+                  <div>
+                    <h2>Live JSON preview</h2>
+                    <p class="section-copy" style="margin-top: 6px;">
+                      Review the final payload before copying or downloading it.
+                    </p>
+                  </div>
+                  <div id="builderHealth" class="health-banner">
+                    Builder health and completeness updates will appear here.
+                  </div>
+                </div>
+              </div>
+
+              <div id="previewStats" class="preview-stats"></div>
+
+              <div class="preview-actions" style="margin: 16px 0 18px;">
+                <button class="success" id="downloadButton" type="button">Download JSON</button>
+                <button class="secondary" id="copyButton" type="button">Copy JSON</button>
+                <button class="ghost" id="resetButton" type="button">Reset form</button>
+              </div>
+
+              <pre id="jsonPreview" class="preview"></pre>
+
+              <div class="preview-footer">
+                <div>Exported filename follows the trigger name when available.</div>
+                <div class="shortcuts">
+                  <span class="kbd">Ctrl</span>
+                  <span class="kbd">S</span>
+                  <span>download</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "context-injection-builder-v2";
+      const STARTUP_NAME = "STARTUP_ATTRIBUTES";
+      const STARTUP_PROMPT =
+        "This is the information about the user that you already have with you. If the information is not there then you should get the information from the user:\\n\\n{context}.\\n";
+
+      const state = {
+        attributes: [],
+        selectedAttributeIds: new Set(),
+        selectionOrder: [],
+        dumpText: "",
+        searchTerm: "",
+        parseMessage: "Paste your dump and click “Parse dumps”.",
+        parseTone: "",
+        enableStartup: true,
+        enableCompletion: true,
+        completion: {
+          name: "disposition_path",
+          channel: "telephony",
+          customerId: "",
+          botKey: "",
+          flowKey: "",
+          authorizationKey: ""
+        }
+      };
+
+      const elements = {
+        dumpInput: document.getElementById("dumpInput"),
+        parseButton: document.getElementById("parseButton"),
+        fileInput: document.getElementById("fileInput"),
+        clearDumpButton: document.getElementById("clearDumpButton"),
+        parseStatus: document.getElementById("parseStatus"),
+        dropSurface: document.getElementById("dropSurface"),
+        enableStartup: document.getElementById("enableStartup"),
+        startupPanel: document.getElementById("startupPanel"),
+        attributeSearch: document.getElementById("attributeSearch"),
+        selectVisibleButton: document.getElementById("selectVisibleButton"),
+        clearSelectionButton: document.getElementById("clearSelectionButton"),
+        attributeSummary: document.getElementById("attributeSummary"),
+        attributeList: document.getElementById("attributeList"),
+        enableCompletion: document.getElementById("enableCompletion"),
+        completionPanel: document.getElementById("completionPanel"),
+        completionName: document.getElementById("completionName"),
+        channel: document.getElementById("channel"),
+        customerId: document.getElementById("customerId"),
+        botKey: document.getElementById("botKey"),
+        flowKey: document.getElementById("flowKey"),
+        authorizationKey: document.getElementById("authorizationKey"),
+        validationStatus: document.getElementById("validationStatus"),
+        selectedAttributes: document.getElementById("selectedAttributes"),
+        selectionCountBadge: document.getElementById("selectionCountBadge"),
+        previewStats: document.getElementById("previewStats"),
+        builderHealth: document.getElementById("builderHealth"),
+        jsonPreview: document.getElementById("jsonPreview"),
+        previewPanel: document.getElementById("previewPanel"),
+        downloadButton: document.getElementById("downloadButton"),
+        copyButton: document.getElementById("copyButton"),
+        resetButton: document.getElementById("resetButton"),
+      };
+
+      function hydrateInputsFromState() {
+        elements.dumpInput.value = state.dumpText;
+        elements.enableStartup.checked = state.enableStartup;
+        elements.enableCompletion.checked = state.enableCompletion;
+        elements.attributeSearch.value = state.searchTerm;
+        elements.completionName.value = state.completion.name;
+        elements.channel.value = state.completion.channel;
+        elements.customerId.value = state.completion.customerId;
+        elements.botKey.value = state.completion.botKey;
+        elements.flowKey.value = state.completion.flowKey;
+        elements.authorizationKey.value = state.completion.authorizationKey;
+      }
+
+      function persistState() {
+        const payload = {
+          dumpText: state.dumpText,
+          searchTerm: state.searchTerm,
+          enableStartup: state.enableStartup,
+          enableCompletion: state.enableCompletion,
+          completion: state.completion,
+          selectionOrder: state.selectionOrder
+        };
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        } catch (error) {
+          console.warn("Draft save skipped.", error);
+        }
+      }
+
+      function restoreState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            return;
+          }
+
+          const saved = JSON.parse(raw);
+          state.dumpText = saved.dumpText || "";
+          state.searchTerm = saved.searchTerm || "";
+          state.enableStartup = saved.enableStartup !== false;
+          state.enableCompletion = saved.enableCompletion !== false;
+          state.completion = {
+            ...state.completion,
+            ...(saved.completion || {})
+          };
+          state.selectionOrder = Array.isArray(saved.selectionOrder) ? saved.selectionOrder.map(String) : [];
+        } catch (error) {
+          console.warn("Draft restore skipped.", error);
+        }
+      }
+
+      function slugify(value) {
+        return value
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "context-injection";
+      }
+
+      function normalizeAuthorizationKey(value) {
+        const trimmed = value.trim();
+        if (!trimmed) {
+          return "";
+        }
+
+        return /^basic\s+/i.test(trimmed) ? trimmed : `Basic ${trimmed}`;
+      }
+
+      function extractJsonBlocks(sourceText) {
+        const text = sourceText.trim();
+        if (!text) {
+          return [];
+        }
+
+        try {
+          return [JSON.parse(text)];
+        } catch (error) {
+          const parsedBlocks = [];
+          let currentStart = -1;
+          let depth = 0;
+          let insideString = false;
+          let escaping = false;
+
+          for (let index = 0; index < text.length; index += 1) {
+            const character = text[index];
+
+            if (insideString) {
+              if (escaping) {
+                escaping = false;
+              } else if (character === "\\") {
+                escaping = true;
+              } else if (character === "\"") {
+                insideString = false;
+              }
+              continue;
+            }
+
+            if (character === "\"") {
+              insideString = true;
+              continue;
+            }
+
+            if (character === "{" || character === "[") {
+              if (depth === 0) {
+                currentStart = index;
+              }
+              depth += 1;
+              continue;
+            }
+
+            if (character === "}" || character === "]") {
+              depth -= 1;
+              if (depth === 0 && currentStart >= 0) {
+                const chunk = text.slice(currentStart, index + 1);
+                try {
+                  parsedBlocks.push(JSON.parse(chunk));
+                } catch (error) {
+                  console.warn("Skipped invalid JSON chunk.", error);
+                }
+                currentStart = -1;
+              }
+            }
+          }
+
+          return parsedBlocks;
+        }
+      }
+
+      function collectAttributeCandidates(input, attributeMap, visitedObjects = new WeakSet()) {
+        if (!input || typeof input !== "object") {
+          return;
+        }
+
+        if (visitedObjects.has(input)) {
+          return;
+        }
+        visitedObjects.add(input);
+
+        if (Array.isArray(input)) {
+          input.forEach((item) => collectAttributeCandidates(item, attributeMap, visitedObjects));
+          return;
+        }
+
+        const idValue = input.id;
+        const nameValue = input.name;
+        const hasValidId = typeof idValue === "number" || typeof idValue === "string";
+        const hasValidName = typeof nameValue === "string" && nameValue.trim().length > 0;
+
+        if (hasValidId && hasValidName) {
+          const normalizedId = String(idValue).trim();
+          if (normalizedId) {
+            attributeMap.set(normalizedId, {
+              id: normalizedId,
+              name: nameValue.trim(),
+              type: typeof input.type === "string" ? input.type : "",
+              category: typeof input.category === "string" ? input.category : "",
+              botRef: typeof input.botRef === "number" || typeof input.botRef === "string" ? String(input.botRef) : ""
+            });
+          }
+        }
+
+        Object.values(input).forEach((value) => {
+          collectAttributeCandidates(value, attributeMap, visitedObjects);
+        });
+      }
+
+      function getSelectedAttributes() {
+        const lookup = new Map(state.attributes.map((attribute) => [attribute.id, attribute]));
+        return state.selectionOrder
+          .map((attributeId) => lookup.get(String(attributeId)))
+          .filter(Boolean);
+      }
+
+      function setParseStatus(message, tone = "") {
+        state.parseMessage = message;
+        state.parseTone = tone;
+        elements.parseStatus.textContent = message;
+        elements.parseStatus.className = `status${tone ? ` ${tone}` : ""}`;
+      }
+
+      function parseDumpText() {
+        state.dumpText = elements.dumpInput.value;
+
+        if (!state.dumpText.trim()) {
+          state.attributes = [];
+          state.selectedAttributeIds.clear();
+          state.selectionOrder = [];
+          setParseStatus("Paste your dump and click “Parse dumps”.");
+          persistState();
+          render();
+          return;
+        }
+
+        const jsonBlocks = extractJsonBlocks(state.dumpText);
+        if (!jsonBlocks.length) {
+          state.attributes = [];
+          state.selectedAttributeIds.clear();
+          state.selectionOrder = [];
+          setParseStatus("No valid JSON blocks were found in the pasted text. Please check the dump and try again.", "error");
+          persistState();
+          render();
+          return;
+        }
+
+        const attributeMap = new Map();
+        jsonBlocks.forEach((block) => collectAttributeCandidates(block, attributeMap));
+
+        const sortedAttributes = Array.from(attributeMap.values()).sort((left, right) =>
+          left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+        );
+
+        const previousSelection = new Set(state.selectionOrder.map(String));
+        state.attributes = sortedAttributes;
+        state.selectedAttributeIds = new Set(
+          sortedAttributes
+            .filter((attribute) => previousSelection.has(attribute.id))
+            .map((attribute) => attribute.id)
+        );
+        state.selectionOrder = state.selectionOrder.filter((attributeId) => state.selectedAttributeIds.has(String(attributeId)));
+
+        const attributeCount = sortedAttributes.length;
+        const blockCount = jsonBlocks.length;
+        setParseStatus(
+          `Parsed ${blockCount} JSON block${blockCount === 1 ? "" : "s"} and found ${attributeCount} unique attribute${attributeCount === 1 ? "" : "s"}.`,
+          attributeCount ? "success" : "warning"
+        );
+
+        persistState();
+        render();
+      }
+
+      function isAttributeVisible(attribute) {
+        if (!state.searchTerm.trim()) {
+          return true;
+        }
+
+        const haystack = `${attribute.name} ${attribute.id}`.toLowerCase();
+        return haystack.includes(state.searchTerm.trim().toLowerCase());
+      }
+
+      function toggleAttribute(attributeId, shouldSelect) {
+        const normalizedId = String(attributeId);
+
+        if (shouldSelect) {
+          state.selectedAttributeIds.add(normalizedId);
+          if (!state.selectionOrder.includes(normalizedId)) {
+            state.selectionOrder.push(normalizedId);
+          }
+        } else {
+          state.selectedAttributeIds.delete(normalizedId);
+          state.selectionOrder = state.selectionOrder.filter((id) => id !== normalizedId);
+        }
+
+        persistState();
+        render();
+      }
+
+      function selectVisibleAttributes() {
+        state.attributes
+          .filter(isAttributeVisible)
+          .forEach((attribute) => {
+            if (!state.selectedAttributeIds.has(attribute.id)) {
+              state.selectedAttributeIds.add(attribute.id);
+              state.selectionOrder.push(attribute.id);
+            }
+          });
+        persistState();
+        render();
+      }
+
+      function clearSelection() {
+        state.selectedAttributeIds.clear();
+        state.selectionOrder = [];
+        persistState();
+        render();
+      }
+
+      function buildStartupSection() {
+        if (!state.enableStartup) {
+          return [];
+        }
+
+        const selectedAttributes = getSelectedAttributes();
+        const attributePayload = {};
+        selectedAttributes.forEach((attribute) => {
+          attributePayload[attribute.id] = { expiryTime: 0 };
+        });
+
+        return [
+          {
+            name: STARTUP_NAME,
+            type: "GET_ATTRIBUTE_VALUES",
+            attributes: attributePayload
+          },
+          {
+            type: "INJECT_IN_CONTEXT",
+            context_variables: selectedAttributes.map((attribute) => `${STARTUP_NAME}.${attribute.name}`),
+            prompt: STARTUP_PROMPT
+          }
+        ];
+      }
+
+      function buildCompletionSection() {
+        if (!state.enableCompletion) {
+          return [];
+        }
+
+        return [
+          {
+            type: "JSON_API",
+            name: state.completion.name.trim() || "disposition_path",
+            request_config: {
+              method: "POST",
+              url: `https://api.engati.ai/bot-api/v2.0/customer/${state.completion.customerId.trim()}/bot/${state.completion.botKey.trim()}/flow/${state.completion.flowKey.trim()}`,
+              headers: {
+                Authorization: normalizeAuthorizationKey(state.completion.authorizationKey),
+                "Content-Type": "application/json"
+              },
+              params: {},
+              body: {
+                "user.channel": state.completion.channel,
+                "user.phone_no": "{{user_id}}"
+              }
+            }
+          }
+        ];
+      }
+
+      function buildConfig() {
+        return {
+          on_startup: buildStartupSection(),
+          on_completion: buildCompletionSection()
+        };
+      }
+
+      function getValidationMessages() {
+        const messages = [];
+
+        if (state.enableStartup && getSelectedAttributes().length === 0) {
+          messages.push("Startup is enabled, but no attributes are selected yet.");
+        }
+
+        if (state.enableCompletion) {
+          if (!state.completion.name.trim()) {
+            messages.push("Completion name is empty.");
+          }
+          if (!state.completion.customerId.trim()) {
+            messages.push("Customer ID is missing.");
+          }
+          if (!state.completion.botKey.trim()) {
+            messages.push("Bot key is missing.");
+          }
+          if (!state.completion.flowKey.trim()) {
+            messages.push("Flow key is missing.");
+          }
+          if (!state.completion.authorizationKey.trim()) {
+            messages.push("Authorization key is missing.");
+          }
+        }
+
+        if (!state.enableStartup && !state.enableCompletion) {
+          messages.push("Both startup and completion are off, so the generated file will contain empty arrays.");
+        }
+
+        return messages;
+      }
+
+      function getBuilderHealthMessage(validationMessages) {
+        const selectedAttributes = getSelectedAttributes();
+
+        if (!state.enableStartup && !state.enableCompletion) {
+          return "Both sections are currently off. The export is valid, but it will contain empty arrays only.";
+        }
+
+        if (!validationMessages.length) {
+          return `Ready to export. ${selectedAttributes.length} attribute${selectedAttributes.length === 1 ? "" : "s"} mapped and completion details look complete.`;
+        }
+
+        return validationMessages[0];
+      }
+
+      function renderAttributeSummary() {
+        const visibleCount = state.attributes.filter(isAttributeVisible).length;
+        const selectedCount = getSelectedAttributes().length;
+        const stats = [
+          { strong: state.attributes.length, label: "Parsed attributes" },
+          { strong: visibleCount, label: "Visible results" },
+          { strong: selectedCount, label: "Selected now" }
+        ];
+
+        elements.attributeSummary.innerHTML = stats
+          .map(
+            (stat) => `
+              <div class="stat-chip">
+                <strong>${stat.strong}</strong>
+                <span>${stat.label}</span>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderAttributeList() {
+        const visibleAttributes = state.attributes.filter(isAttributeVisible);
+
+        if (!state.attributes.length) {
+          elements.attributeList.innerHTML = `<div class="empty-state">No attributes yet. Parse a dump to unlock the picker.</div>`;
+          return;
+        }
+
+        if (!visibleAttributes.length) {
+          elements.attributeList.innerHTML = `<div class="empty-state">No attributes match your current search.</div>`;
+          return;
+        }
+
+        elements.attributeList.innerHTML = visibleAttributes
+          .map((attribute) => {
+            const checked = state.selectedAttributeIds.has(attribute.id);
+            const metaParts = [`Key: ${attribute.id}`];
+            if (attribute.type) {
+              metaParts.push(`Type: ${attribute.type}`);
+            }
+            if (attribute.category) {
+              metaParts.push(`Category: ${attribute.category}`);
+            }
+
+            return `
+              <label class="attribute-card ${checked ? "is-selected" : ""}">
+                <input type="checkbox" data-attribute-id="${attribute.id}" ${checked ? "checked" : ""} />
+                <div>
+                  <div class="attribute-name">${escapeHtml(attribute.name)}</div>
+                  <div class="attribute-meta">${escapeHtml(metaParts.join(" • "))}</div>
+                </div>
+                <span class="attribute-id">${attribute.id}</span>
+              </label>
+            `;
+          })
+          .join("");
+
+        elements.attributeList.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+          checkbox.addEventListener("change", (event) => {
+            toggleAttribute(event.target.dataset.attributeId, event.target.checked);
+          });
+        });
+      }
+
+      function renderSelectedAttributes() {
+        const selectedAttributes = getSelectedAttributes();
+        elements.selectionCountBadge.textContent = selectedAttributes.length;
+
+        if (!selectedAttributes.length) {
+          elements.selectedAttributes.innerHTML = `<div class="empty-state" style="width:100%;">No attributes selected yet.</div>`;
+          return;
+        }
+
+        elements.selectedAttributes.innerHTML = selectedAttributes
+          .map(
+            (attribute) => `
+              <span class="pill">
+                ${escapeHtml(attribute.name)}
+                <button type="button" data-remove-attribute="${attribute.id}" aria-label="Remove ${escapeHtml(attribute.name)}">×</button>
+              </span>
+            `
+          )
+          .join("");
+
+        elements.selectedAttributes.querySelectorAll("[data-remove-attribute]").forEach((button) => {
+          button.addEventListener("click", () => {
+            toggleAttribute(button.dataset.removeAttribute, false);
+          });
+        });
+      }
+
+      function renderPreview() {
+        const config = buildConfig();
+        elements.jsonPreview.textContent = JSON.stringify(config, null, 2);
+
+        const selectedAttributes = getSelectedAttributes();
+        const stats = [
+          { strong: config.on_startup.length, label: "Startup actions" },
+          { strong: config.on_completion.length, label: "Completion actions" },
+          { strong: selectedAttributes.length, label: "Mapped attributes" }
+        ];
+
+        elements.previewStats.innerHTML = stats
+          .map(
+            (stat) => `
+              <div class="preview-stat">
+                <strong>${stat.strong}</strong>
+                <span>${stat.label}</span>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderValidation() {
+        const messages = getValidationMessages();
+
+        if (!messages.length) {
+          elements.validationStatus.textContent = "Everything needed for generation is in place.";
+          elements.validationStatus.className = "status success";
+        } else {
+          elements.validationStatus.textContent = messages.join("\n");
+          elements.validationStatus.className = "status warning";
+        }
+
+        elements.builderHealth.textContent = getBuilderHealthMessage(messages);
+        elements.builderHealth.className = `health-banner${messages.length ? "" : ""}`;
+      }
+
+      function renderPanelStates() {
+        elements.startupPanel.classList.toggle("panel-muted", !state.enableStartup);
+        elements.completionPanel.classList.toggle("panel-muted", !state.enableCompletion);
+      }
+
+      function render() {
+        renderAttributeSummary();
+        renderAttributeList();
+        renderSelectedAttributes();
+        renderPreview();
+        renderValidation();
+        renderPanelStates();
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      async function copyJsonToClipboard() {
+        const jsonText = JSON.stringify(buildConfig(), null, 2);
+        try {
+          await navigator.clipboard.writeText(jsonText);
+          elements.copyButton.textContent = "Copied";
+          setTimeout(() => {
+            elements.copyButton.textContent = "Copy JSON";
+          }, 1200);
+        } catch (error) {
+          alert("Copy failed in this browser. Please use the preview and copy manually.");
+        }
+      }
+
+      function downloadJsonFile() {
+        const jsonText = JSON.stringify(buildConfig(), null, 2);
+        const filenameBase = slugify(state.completion.name || "context-injection");
+        const blob = new Blob([jsonText], { type: "application/json" });
+        const blobUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = blobUrl;
+        anchor.download = `${filenameBase}.json`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(blobUrl);
+      }
+
+      function resetForm() {
+        const shouldReset = window.confirm("Reset the builder and clear the saved draft?");
+        if (!shouldReset) {
+          return;
+        }
+
+        localStorage.removeItem(STORAGE_KEY);
+        state.attributes = [];
+        state.selectedAttributeIds.clear();
+        state.selectionOrder = [];
+        state.dumpText = "";
+        state.searchTerm = "";
+        state.parseMessage = "Paste your dump and click “Parse dumps”.";
+        state.parseTone = "";
+        state.enableStartup = true;
+        state.enableCompletion = true;
+        state.completion = {
+          name: "disposition_path",
+          channel: "telephony",
+          customerId: "",
+          botKey: "",
+          flowKey: "",
+          authorizationKey: ""
+        };
+
+        hydrateInputsFromState();
+        setParseStatus(state.parseMessage);
+        render();
+      }
+
+      async function handleImportedFile(file) {
+        if (!file) {
+          return;
+        }
+        const text = await file.text();
+        elements.dumpInput.value = text;
+        parseDumpText();
+      }
+
+      function attachDropSurfaceListeners() {
+        ["dragenter", "dragover"].forEach((eventName) => {
+          elements.dropSurface.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            elements.dropSurface.classList.add("dragging");
+          });
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+          elements.dropSurface.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            elements.dropSurface.classList.remove("dragging");
+          });
+        });
+
+        elements.dropSurface.addEventListener("drop", async (event) => {
+          const [file] = event.dataTransfer.files || [];
+          await handleImportedFile(file);
+        });
+      }
+
+      function attachKeyboardShortcuts() {
+        window.addEventListener("keydown", (event) => {
+          const isModifierPressed = event.ctrlKey || event.metaKey;
+
+          if (isModifierPressed && event.key === "Enter") {
+            event.preventDefault();
+            parseDumpText();
+          }
+
+          if (isModifierPressed && event.key.toLowerCase() === "s") {
+            event.preventDefault();
+            downloadJsonFile();
+          }
+        });
+      }
+
+      function attachInputListeners() {
+        elements.parseButton.addEventListener("click", parseDumpText);
+        elements.clearDumpButton.addEventListener("click", () => {
+          elements.dumpInput.value = "";
+          parseDumpText();
+        });
+
+        elements.fileInput.addEventListener("change", async (event) => {
+          const [file] = event.target.files || [];
+          await handleImportedFile(file);
+          elements.fileInput.value = "";
+        });
+
+        elements.dumpInput.addEventListener("input", () => {
+          state.dumpText = elements.dumpInput.value;
+          persistState();
+        });
+
+        elements.enableStartup.addEventListener("change", () => {
+          state.enableStartup = elements.enableStartup.checked;
+          persistState();
+          render();
+        });
+
+        elements.attributeSearch.addEventListener("input", () => {
+          state.searchTerm = elements.attributeSearch.value;
+          persistState();
+          renderAttributeSummary();
+          renderAttributeList();
+        });
+
+        elements.selectVisibleButton.addEventListener("click", selectVisibleAttributes);
+        elements.clearSelectionButton.addEventListener("click", clearSelection);
+
+        elements.enableCompletion.addEventListener("change", () => {
+          state.enableCompletion = elements.enableCompletion.checked;
+          persistState();
+          render();
+        });
+
+        [
+          ["completionName", "name"],
+          ["channel", "channel"],
+          ["customerId", "customerId"],
+          ["botKey", "botKey"],
+          ["flowKey", "flowKey"],
+          ["authorizationKey", "authorizationKey"]
+        ].forEach(([elementKey, stateKey]) => {
+          const eventName = elementKey === "channel" ? "change" : "input";
+          elements[elementKey].addEventListener(eventName, () => {
+            state.completion[stateKey] = elements[elementKey].value;
+            persistState();
+            render();
+          });
+        });
+
+        elements.downloadButton.addEventListener("click", downloadJsonFile);
+        elements.copyButton.addEventListener("click", copyJsonToClipboard);
+        elements.resetButton.addEventListener("click", resetForm);
+      }
+
+      restoreState();
+      hydrateInputsFromState();
+      attachDropSurfaceListeners();
+      attachKeyboardShortcuts();
+      attachInputListeners();
+
+      if (state.dumpText.trim()) {
+        parseDumpText();
+      } else {
+        setParseStatus(state.parseMessage);
+        render();
+      }
+    </script>
+  </body>
+</html>
